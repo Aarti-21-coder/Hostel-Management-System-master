@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Management System | DSA Architecture</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="dark">
+    <!-- Background Animated Blobs -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="fas fa-hotel"></i></div>
+            <div class="brand-text">
+                <h2>HostelCore</h2>
+                <span>DSA Architecture</span>
+            </div>
+        </div>
+
+        <ul class="nav-links">
+            <li class="nav-item active" id="nav-dashboard">
+                <a href="#dashboard" data-tab="dashboard">
+                    <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-register">
+                <a href="#register" data-tab="register">
+                    <i class="fas fa-user-plus"></i> <span>Registration (2.0)</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-waiting">
+                <a href="#waiting" data-tab="waiting">
+                    <i class="fas fa-layer-group"></i> <span>Waiting Lists</span>
+                    <span class="nav-badge" id="navWaitingBadge">0</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-rooms">
+                <a href="#rooms" data-tab="rooms">
+                    <i class="fas fa-door-open"></i> <span>Room Grid (3.0)</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-allocated">
+                <a href="#allocated" data-tab="allocated">
+                    <i class="fas fa-id-card"></i> <span>Allocated DB</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-students">
+                <a href="#students" data-tab="students">
+                    <i class="fas fa-users"></i> <span>Master Status DB</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-reports">
+                <a href="#reports" data-tab="reports">
+                    <i class="fas fa-chart-line"></i> <span>View Reports (4.0)</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-campus">
+                <a href="#campus" data-tab="campus">
+                    <i class="fas fa-map-marked-alt"></i> <span>Campus Navigator</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-lab">
+                <a href="#lab" data-tab="lab">
+                    <i class="fas fa-flask"></i> <span>DSA Lab & Benchmarks</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-profile-bar">
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user-shield"></i></div>
+                <div class="user-meta">
+                    <h4 id="currentUserDisplay">Admin</h4>
+                    <span id="currentRoleDisplay">Hostel Administrator</span>
+                </div>
+            </div>
+            <button class="btn-icon" id="btnToggleTheme" title="Toggle Dark/Light Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+        <!-- Top Sticky Header -->
+        <header class="top-bar">
+            <div class="search-box-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="globalSearchInput" class="search-box" placeholder="Global search students (Trie autocomplete)...">
+                <div id="searchDropdown" class="search-results-dropdown"></div>
+            </div>
+
+            <div class="top-actions">
+                <button class="btn-secondary" id="btnTopUndo" title="Undo last action (Stack)">
+                    <i class="fas fa-undo"></i> Undo
+                </button>
+                <button class="btn-secondary" id="btnTopRedo" title="Redo last action (Stack)">
+                    <i class="fas fa-redo"></i> Redo
+                </button>
+                <button class="btn-primary" id="btnAllocateNext">
+                    <i class="fas fa-bolt"></i> Allocate Next (Priority First)
+                </button>
+            </div>
+        </header>
+
+        <!-- PAGE 1: DASHBOARD -->
+        <div class="page-container active" id="page-dashboard">
+            <div class="page-header">
+                <div>
+                    <h1>System Overview & Metrics</h1>
+                    <p>Real-time data synchronization across all custom memory stores</p>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Registered Students</span>
+                        <div class="stat-icon" style="background: rgba(99, 102, 241, 0.2); color: #6366f1;"><i class="fas fa-graduation-cap"></i></div>
+                    </div>
+                    <div class="stat-value" id="statTotalStudents">0</div>
+                    <div class="stat-sub">Vector & Hash Table store</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Waiting in Queues</span>
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;"><i class="fas fa-hourglass-half"></i></div>
+                    </div>
+                    <div class="stat-value" id="statWaitingCount">0</div>
+                    <div class="stat-sub">Max-Heap + Circular FIFO Queue</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Allocated Students</span>
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;"><i class="fas fa-bed"></i></div>
+                    </div>
+                    <div class="stat-value" id="statAllocatedCount">0</div>
+                    <div class="stat-sub">Doubly Linked List Allocated DB</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Hostel Occupancy</span>
+                        <div class="stat-icon" style="background: rgba(6, 182, 212, 0.2); color: #06b6d4;"><i class="fas fa-percent"></i></div>
+                    </div>
+                    <div class="stat-value" id="statOccupancyPercent">0%</div>
+                    <div class="stat-sub">Across Blocks A through E</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="glass-card chart-card">
+                    <h3 style="margin-bottom: 16px;">Hostel Bed Occupancy</h3>
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="occupancyChartCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card chart-card">
+                    <h3 style="margin-bottom: 16px;">Student Status Distribution</h3>
+                    <div style="height: 240px; position: relative;">
+                        <canvas id="statusChartCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: STUDENT REGISTRATION (DFD 2.0) -->
+        <div class="page-container" id="page-register">
+            <div class="page-header">
+                <div>
+                    <h1>DFD 2.0: Student Registration</h1>
+                    <p>Validation, O(1) Hash Table indexing, and intelligent queue routing</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                <div class="glass-card">
+                    <form id="formRegisterStudent">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Student Roll / ID *</label>
+                                <input type="text" id="regId" class="form-control" placeholder="e.g. STU1001" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" id="regName" class="form-control" placeholder="e.g. Aarav Sharma" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Age *</label>
+                                <input type="number" id="regAge" class="form-control" value="19" min="15" max="35" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender *</label>
+                                <select id="regGender" class="form-control" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Course *</label>
+                                <select id="regCourse" class="form-control" required>
+                                    <option value="B.Tech CSE">B.Tech CSE</option>
+                                    <option value="B.Tech ECE">B.Tech ECE</option>
+                                    <option value="B.Tech ME">B.Tech ME</option>
+                                    <option value="B.Tech CE">B.Tech CE</option>
+                                    <option value="B.Tech EE">B.Tech EE</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Year of Study *</label>
+                                <select id="regYear" class="form-control" required>
+                                    <option value="1">1st Year (Weight: 25)</option>
+                                    <option value="2">2nd Year (Weight: 50)</option>
+                                    <option value="3">3rd Year (Weight: 75)</option>
+                                    <option value="4" selected>4th Year (Weight: 100)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>CGPA (0.0 to 10.0) *</label>
+                                <input type="number" id="regCgpa" class="form-control" step="0.1" value="8.5" min="0" max="10" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Hometown Distance (Km)</label>
+                                <input type="number" id="regDistance" class="form-control" value="350" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="text" id="regPhone" class="form-control" placeholder="+91 9876543210">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" id="regEmail" class="form-control" placeholder="aarav@college.edu">
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="regCity" class="form-control" placeholder="e.g. Mumbai">
+                            </div>
+                            <div class="form-group" style="justify-content: center;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 18px;">
+                                    <input type="checkbox" id="regSpecial" style="width: 18px; height: 18px;">
+                                    <span>Special Category Quota (+15 pts)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn-primary" style="padding: 12px 28px; font-size: 14px;">
+                                <i class="fas fa-check-circle"></i> Register Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Priority Live Computation Preview -->
+                <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-bottom: 12px;">Live Priority Score</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+                            Formula: <code>(Year × 25) + (CGPA × 5) + (Distance × 0.02) + SpecialBonus</code>
+                        </p>
+
+                        <div style="text-align: center; padding: 24px 0;">
+                            <div style="font-size: 54px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="priorityPreviewScore">
+                                0.00
+                            </div>
+                            <div style="margin-top: 14px;">
+                                <span class="badge badge-waiting" id="priorityQueueRouting" style="font-size: 13px; padding: 6px 14px;">
+                                    Priority Queue (Binary Max-Heap)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--glass-border); padding-top: 16px; font-size: 12px; color: var(--text-muted);">
+                        <i class="fas fa-info-circle"></i> Students with score ≥ 50.0 enter the Priority Max-Heap (always served first). All others enter the Circular FIFO Queue.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: WAITING LISTS -->
+        <div class="page-container" id="page-waiting">
+            <div class="page-header">
+                <div>
+                    <h1>Waiting Lists (Priority & Normal)</h1>
+                    <p>Priority Queue (Binary Max-Heap) is always served before the Normal Queue (Circular FIFO)</p>
+                </div>
+                <div>
+                    <button class="btn-primary" onclick="App.allocateNext()">
+                        <i class="fas fa-play"></i> Allocate Next Student (DFD 3.0)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Priority Tab -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h3><i class="fas fa-crown" style="color: #f59e0b;"></i> Priority Waiting Queue (Binary Max-Heap)</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">Always served first by allocation manager</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Student ID</th>
+                                <th>Full Name</th>
+                                <th>Course</th>
+                                <th>CGPA</th>
+                                <th>Priority Score</th>
+                                <th>Gender</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priorityQueueTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Normal Tab -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h3><i class="fas fa-clock" style="color: #06b6d4;"></i> Normal Waiting Queue (Circular FIFO Ring Buffer)</h3>
+                        <span style="font-size: 12px; color: var(--text-muted);">Served in First-In-First-Out order when priority queue is empty</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Queue Pos</th>
+                                <th>Student ID</th>
+                                <th>Full Name</th>
+                                <th>Course</th>
+                                <th>CGPA</th>
+                                <th>Priority Score</th>
+                                <th>Gender</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="normalQueueTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4: ROOM ALLOCATION & MAP (DFD 3.0) -->
+        <div class="page-container" id="page-rooms">
+            <div class="page-header">
+                <div>
+                    <h1>Room Availability & Allocation Grid</h1>
+                    <p>Interactive colour-coded floor map across 5 blocks and multiple floors</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <!-- Block and Floor Selectors -->
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary block-tab-btn active" data-block="Block A" onclick="App.setBlock('Block A')">Block A (Boys)</button>
+                        <button class="btn-secondary block-tab-btn" data-block="Block B" onclick="App.setBlock('Block B')">Block B (Boys)</button>
+                        <button class="btn-secondary block-tab-btn" data-block="Block C" onclick="App.setBlock('Block C')">Block C (Girls)</button>
+                        <button class="btn-secondary block-tab-btn" data-block="Block D" onclick="App.setBlock('Block D')">Block D (Girls)</button>
+                        <button class="btn-secondary block-tab-btn" data-block="Block E" onclick="App.setBlock('Block E')">Block E (Girls)</button>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary floor-tab-btn active" data-floor="1" onclick="App.setFloor(1)">Floor 1</button>
+                        <button class="btn-secondary floor-tab-btn" data-floor="2" onclick="App.setFloor(2)">Floor 2 (AC)</button>
+                        <button class="btn-secondary floor-tab-btn" data-floor="3" onclick="App.setFloor(3)">Floor 3 (AC)</button>
+                    </div>
+                </div>
+
+                <!-- Color legend -->
+                <div style="display: flex; gap: 20px; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: var(--success);"></span> Available Room
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: var(--danger);"></span> Fully Occupied
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 12px; height: 12px; border-radius: 3px; background: var(--warning);"></span> Maintenance
+                    </div>
+                </div>
+
+                <div class="room-grid" id="roomGridContainer"></div>
+            </div>
+        </div>
+
+        <!-- PAGE 5: ALLOCATED STUDENTS DB -->
+        <div class="page-container" id="page-allocated">
+            <div class="page-header">
+                <div>
+                    <h1>Allocated Students DB (Doubly Linked List)</h1>
+                    <p>Live active room occupants with O(1) node-level vacation & transfer</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Room ID</th>
+                                <th>Bed Index</th>
+                                <th>Allocation Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allocatedTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 6: MASTER STATUS DB -->
+        <div class="page-container" id="page-students">
+            <div class="page-header">
+                <div>
+                    <h1>Master Student Directory</h1>
+                    <p>Complete historical registry: Registered, Waiting, Allocated, Vacated, and Cancelled</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <select id="filterStudentStatus" class="form-control" style="width: 150px;" onchange="App.loadStudents(1)">
+                        <option value="ALL">All Statuses</option>
+                        <option value="WAITING">Waiting</option>
+                        <option value="ALLOCATED">Allocated</option>
+                        <option value="VACATED">Vacated</option>
+                        <option value="CANCELLED">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Full Name</th>
+                                <th>Course</th>
+                                <th>CGPA</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Room ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsMasterTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                    <span id="studentPageIndicator" style="font-size: 13px; color: var(--text-muted);">Page 1</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary" onclick="App.loadStudents(1)">First</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 7: VIEW REPORTS (DFD 4.0) -->
+        <div class="page-container" id="page-reports">
+            <div class="page-header">
+                <div>
+                    <h1>DFD 4.0: View Reports with Custom Sorting</h1>
+                    <p>Compare custom QuickSort, MergeSort, and HeapSort with live microsecond timers</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 24px;">
+                    <div class="form-group" style="width: 200px;">
+                        <label>Sort Field</label>
+                        <select id="reportSortField" class="form-control">
+                            <option value="cgpa">CGPA (Academic)</option>
+                            <option value="priority">Priority Score</option>
+                            <option value="year">Year of Study</option>
+                            <option value="name">Student Name (A-Z)</option>
+                            <option value="id">Student ID</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="width: 160px;">
+                        <label>Order</label>
+                        <select id="reportSortOrder" class="form-control">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="width: 260px;">
+                        <label>Custom Sorting Algorithm</label>
+                        <select id="reportAlgorithm" class="form-control">
+                            <option value="quicksort">QuickSort (Median-of-three, in-place)</option>
+                            <option value="mergesort">MergeSort (Stable divide & conquer)</option>
+                            <option value="heapsort">HeapSort (In-place binary heap)</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-primary" onclick="App.loadReports()" style="height: 42px;">
+                        <i class="fas fa-sort-amount-down"></i> Generate Sorted Report
+                    </button>
+                </div>
+
+                <!-- Telemetry Cards -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-primary);">
+                        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Execution Time</span>
+                        <div style="font-size: 22px; font-weight: 700;" id="reportElapsedUs">0.00 μs</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--info);">
+                        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Comparisons</span>
+                        <div style="font-size: 22px; font-weight: 700;" id="reportComparisons">0</div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.2); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid var(--warning);">
+                        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Swaps / Moves</span>
+                        <div style="font-size: 22px; font-weight: 700;" id="reportSwaps">0</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student ID</th>
+                                <th>Full Name</th>
+                                <th>Course</th>
+                                <th>CGPA</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Allocated Room</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 8: CAMPUS NAVIGATOR (DIJKSTRA) -->
+        <div class="page-container" id="page-campus">
+            <div class="page-header">
+                <div>
+                    <h1>Campus Navigation (Graph & Dijkstra)</h1>
+                    <p>Shortest path finding from hostel blocks to dining halls, gates, and libraries</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="form-group" style="width: 280px;">
+                        <label>Starting Location</label>
+                        <select id="routeFrom" class="form-control">
+                            <option value="Block A">Block A</option>
+                            <option value="Block B">Block B</option>
+                            <option value="Block C">Block C</option>
+                            <option value="Block D">Block D</option>
+                            <option value="Block E">Block E</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="width: 280px;">
+                        <label>Destination</label>
+                        <select id="routeTo" class="form-control">
+                            <option value="Dining Hall / Mess">Dining Hall / Mess</option>
+                            <option value="Main Campus Gate">Main Campus Gate</option>
+                            <option value="Central Library">Central Library</option>
+                            <option value="Health & Wellness Center">Health & Wellness Center</option>
+                            <option value="Sports Complex">Sports Complex</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-primary" id="btnFindRoute" style="height: 42px;">
+                        <i class="fas fa-route"></i> Calculate Shortest Route
+                    </button>
+                </div>
+
+                <div id="routeResult"></div>
+            </div>
+        </div>
+
+        <!-- PAGE 9: DSA LAB & BENCHMARK -->
+        <div class="page-container" id="page-lab">
+            <div class="page-header">
+                <div>
+                    <h1>DSA Benchmark Lab</h1>
+                    <p>Live empirical complexity evaluation and Big Dataset stress testing</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="App.generateDataset(1000)"><i class="fas fa-database"></i> Add 1K Students</button>
+                    <button class="btn-secondary" onclick="App.generateDataset(10000)"><i class="fas fa-database"></i> Add 10K Students</button>
+                    <button class="btn-secondary" onclick="App.saveState()"><i class="fas fa-save"></i> Save Binary</button>
+                    <button class="btn-secondary" onclick="App.loadState()"><i class="fas fa-folder-open"></i> Load Binary</button>
+                    <button class="btn-primary" id="btnRunBenchmark" onclick="DSALab.runBenchmarks()"><i class="fas fa-play"></i> Run Live Benchmarks</button>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="glass-card chart-card">
+                    <h3 style="margin-bottom: 12px;">Sorting Algorithms: QuickSort vs MergeSort vs HeapSort</h3>
+                    <div style="height: 260px; position: relative;">
+                        <canvas id="sortBenchmarkChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-card chart-card">
+                    <h3 style="margin-bottom: 12px;">Search Complexity: Linear O(N) vs AVL O(log N) vs HashTable O(1)</h3>
+                    <div style="height: 260px; position: relative;">
+                        <canvas id="searchBenchmarkChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Big-O Complexity Table -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 16px;">Hostel Management System - DSA Complexity Registry</h3>
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Data Structure</th>
+                                <th>File Header</th>
+                                <th>Primary Operations</th>
+                                <th>Time Complexity</th>
+                                <th>Space Complexity</th>
+                                <th>System Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Vector&lt;T&gt;</strong></td>
+                                <td><code>Vector.hpp</code></td>
+                                <td>Random Access, push_back</td>
+                                <td>Access: O(1), Append: Amortized O(1)</td>
+                                <td>O(N)</td>
+                                <td>Dynamic storage for Students, Rooms, Reports</td>
+                            </tr>
+                            <tr>
+                                <td><strong>HashTable&lt;K, V&gt;</strong></td>
+                                <td><code>HashTable.hpp</code></td>
+                                <td>Insert, Find, Erase</td>
+                                <td>Avg O(1), Worst O(N)</td>
+                                <td>O(N + M)</td>
+                                <td>O(1) Primary Key Index on Student ID & Sessions</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Binary Max-Heap</strong></td>
+                                <td><code>BinaryHeap.hpp</code></td>
+                                <td>Push, Pop, Top</td>
+                                <td>Top: O(1), Push/Pop: O(log N)</td>
+                                <td>O(N)</td>
+                                <td>Priority Queue Waiting List (served first)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Circular Queue</strong></td>
+                                <td><code>CircularQueue.hpp</code></td>
+                                <td>Enqueue, Dequeue, Peek</td>
+                                <td>O(1) Enqueue/Dequeue</td>
+                                <td>O(Capacity)</td>
+                                <td>Normal Queue (FIFO Waiting List, SOS queue)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Doubly Linked List</strong></td>
+                                <td><code>DoublyLinkedList.hpp</code></td>
+                                <td>Push, Pop, removeNode</td>
+                                <td>O(1) Node-level deletion</td>
+                                <td>O(N)</td>
+                                <td>Allocated Students DB & LRU Cache</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Stack&lt;T&gt;</strong></td>
+                                <td><code>Stack.hpp</code></td>
+                                <td>Push, Pop, Top</td>
+                                <td>O(1) Push/Pop</td>
+                                <td>O(N)</td>
+                                <td>Undo and Redo administrative transaction stacks</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Graph & Dijkstra</strong></td>
+                                <td><code>Graph.hpp</code></td>
+                                <td>Shortest Path, BFS, DFS</td>
+                                <td>Dijkstra: O((V+E) log V)</td>
+                                <td>O(V + E)</td>
+                                <td>Campus shortest path navigation</td>
+                            </tr>
+                            <tr>
+                                <td><strong>AVL Tree</strong></td>
+                                <td><code>AVLTree.hpp</code></td>
+                                <td>Search, Insert, Range Query</td>
+                                <td>O(log N), Range: O(log N + k)</td>
+                                <td>O(N)</td>
+                                <td>CGPA and Age balanced range queries</td>
+                            </tr>
+                            <tr>
+                                <td><strong>B+ Tree</strong></td>
+                                <td><code>BPlusTree.hpp</code></td>
+                                <td>Search, Range Scan</td>
+                                <td>O(log_M N + k)</td>
+                                <td>O(N)</td>
+                                <td>High-fanout indexed disk/memory store</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Segment Tree</strong></td>
+                                <td><code>SegmentTree.hpp</code></td>
+                                <td>Range Sum, Point Update</td>
+                                <td>O(log N) Query & Update</td>
+                                <td>O(4N)</td>
+                                <td>Student fee dues dynamic range sums</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fenwick Tree</strong></td>
+                                <td><code>FenwickTree.hpp</code></td>
+                                <td>Prefix Sum, Point Update</td>
+                                <td>O(log N)</td>
+                                <td>O(N)</td>
+                                <td>Binary Indexed Tree for dues balances</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Interval Tree</strong></td>
+                                <td><code>IntervalTree.hpp</code></td>
+                                <td>Overlap Detection</td>
+                                <td>O(log N + k)</td>
+                                <td>O(N)</td>
+                                <td>Booking and student leave conflict detection</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Disjoint Set (DSU)</strong></td>
+                                <td><code>DisjointSet.hpp</code></td>
+                                <td>Find, Union</td>
+                                <td>Amortized O(alpha(N)) ~ O(1)</td>
+                                <td>O(N)</td>
+                                <td>Smart roommate clustering and affinity groups</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bloom Filter</strong></td>
+                                <td><code>BloomFilter.hpp</code></td>
+                                <td>Contains, Insert</td>
+                                <td>O(k)</td>
+                                <td>O(M bits)</td>
+                                <td>Zero false-negative duplicate email/phone check</td>
+                            </tr>
+                            <tr>
+                                <td><strong>LRU Cache</strong></td>
+                                <td><code>LRUCache.hpp</code></td>
+                                <td>Get, Put</td>
+                                <td>O(1)</td>
+                                <td>O(Capacity)</td>
+                                <td>Recent student profile fast cache</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Trie</strong></td>
+                                <td><code>Trie.hpp</code></td>
+                                <td>Insert, Autocomplete, Fuzzy</td>
+                                <td>O(L) search, O(Sigma^D * L) fuzzy</td>
+                                <td>O(Sigma * L * N)</td>
+                                <td>Global search instant autocomplete & typo tolerance</td>
+                            </tr>
+                            <tr>
+                                <td><strong>String Search</strong></td>
+                                <td><code>StringSearch.hpp</code></td>
+                                <td>KMP & Rabin-Karp</td>
+                                <td>O(N + M)</td>
+                                <td>O(M)</td>
+                                <td>Pattern matching in audit logs and complaints</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Frontend Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/dsa_lab.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
